@@ -6,6 +6,7 @@ game.addFailedFn(failed)
 var mask = document.querySelector('.mask')
 var restartButton = document.querySelector('.restart')
 var score = document.querySelector('.score')
+var winnerText = document.querySelector('.winner-text')
 
 restartButton.addEventListener('click', restart)
 
@@ -17,6 +18,7 @@ function restart () {
 // 游戏失败执行函数
 function failed(){
 	score.innerText = game.score
+	winnerText.innerText = `获胜者是：${game.winUser}`
 	mask.style.display = 'flex'
 }
 // 游戏成功，更新分数

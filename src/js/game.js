@@ -1,3 +1,6 @@
+window.$p1 = document.getElementById('p1');
+window.$p2 = document.getElementById('p2');
+
 var Game = function () {
   // 基本参数
   this.config = {
@@ -62,6 +65,8 @@ var Game = function () {
     end: false // 掉到地面没有
   }
   this.combo = 0; // 连续调到中心的次数，起始为0
+
+  this.activeUser = 'p1'
 }
 Game.prototype = {
   init: function () {
@@ -108,6 +113,7 @@ Game.prototype = {
   // 游戏失败重新开始的初始化配置
   restart: function () {
     this.score = 0
+    this.switchActiveUser(true);
     this.cameraPos = {
       current: new THREE.Vector3(0, 0, 0),
       next: new THREE.Vector3()
@@ -291,6 +297,10 @@ Game.prototype = {
         if (self.successCallback) {
           self.successCallback(self.score)
         }
+
+        // 切换当前用户
+        self.switchActiveUser();
+
       } else {
         // 掉落失败，进入失败动画
         self._falling();
@@ -299,10 +309,28 @@ Game.prototype = {
         if(FallMusic){
           FallMusic.play();
         }
+
+        // 播报胜利用户
+        const winUser = self.activeUser === 'p1' ? 'p2' : 'p2';
+        // alert('获胜者为：' + winUser)
+        self.winUser = winUser;
       }
     }
 
     act();
+  },
+  switchActiveUser(init) {
+    var self = this;
+    console.log('------------------', init);
+    console.log(self.activeUser);
+    const act = init ? 'p2' : self.activeUser;
+    document.getElementById('p1').classList.remove('active');
+    document.getElementById('p2').classList.remove('active');
+    self.activeUser = act === 'p1' ? 'p2' : 'p1';
+    console.log(self.activeUser);
+    console.log('------------------');
+
+    document.getElementById(self.activeUser).classList.add('active');
   },
   /**
    *游戏失败执行的碰撞效果
