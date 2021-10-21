@@ -30,13 +30,31 @@ var Game = function (Role) {
       geometry: "CylinderGeometry",
       materia: 1,
       nextDir: "left",
-      range: 3.7,
+      range: 3,
     },
     {
       geometry: "CubeGeometry",
       materia: 2,
       nextDir: "right",
       range: 1.2,
+    },
+    {
+      geometry: "CubeGeometry",
+      materia: 3,
+      nextDir: "left",
+      range: 0.7,
+    },
+    {
+      geometry: "CubeGeometry",
+      materia: 4,
+      nextDir: "right",
+      range: 1.9,
+    },
+    {
+      geometry: "CylinderGeometry",
+      materia: 5,
+      nextDir: "right",
+      range: 0.3,
     },
   ];
   this.blockMapMax = this.blockMap.length - 1;
@@ -224,6 +242,14 @@ Game.prototype = {
    **/
   _handleMousedown: function () {
     var self = this;
+    console.log('----------------');
+    console.log('self.jumperBody.scale.y :>> ', self.jumperBody.scale.y);
+    console.log('self.jumperStat.xSpeed :>> ', self.jumperStat.xSpeed);
+    console.log('self.jumperStat.ySpeed :>> ', self.jumperStat.ySpeed);
+    console.log('self.jumperStat.yTimes :>> ', self.jumperStat.yTimes);
+    console.log('self.jumperHead.position.y :>> ', self.jumperHead.position.y);
+    console.log('----------------');
+
 
     self.pressDownCount = 0;
     console.log(self.jumper.position.y);
@@ -256,6 +282,14 @@ Game.prototype = {
   _handleReceiveMouseDown: function (count) {
     var self = this;
 
+    console.log('----------------');
+    console.log('self.jumperBody.scale.y :>> ', self.jumperBody.scale.y);
+    console.log('self.jumperStat.xSpeed :>> ', self.jumperStat.xSpeed);
+    console.log('self.jumperStat.ySpeed :>> ', self.jumperStat.ySpeed);
+    console.log('self.jumperStat.yTimes :>> ', self.jumperStat.yTimes);
+    console.log('self.jumperHead.position.y :>> ', self.jumperHead.position.y);
+    console.log('----------------');
+
     var pressCount = count;
     console.log(self.jumper.position.y);
 
@@ -287,6 +321,13 @@ Game.prototype = {
   // 鼠标松开或触摸结束绑定的函数
   _handleMouseup: function () {
     var self = this;
+
+    console.log('self.jumperBody.scale.y :>> ', self.jumperBody.scale.y);
+    console.log('self.jumperStat.xSpeed :>> ', self.jumperStat.xSpeed);
+    console.log('self.jumperStat.ySpeed :>> ', self.jumperStat.ySpeed);
+    console.log('self.jumperStat.yTimes :>> ', self.jumperStat.yTimes);
+    console.log('self.jumperHead.position.y :>> ', self.jumperHead.position.y);
+
     this.flying = true;
     // console.log('self.jumperStat.xSpeed', self.jumperStat.xSpeed);
     // console.log('self.jumperStat.ySpeed', self.jumperStat.ySpeed);
@@ -314,6 +355,8 @@ Game.prototype = {
         // jumper根据下一个方块的位置来确定水平运动方向
 
         var jumperRotateBase = self.jumperStat.yTimes / 2;
+
+        console.log('self.jumperStat.xSpeed :>> ', self.jumperStat.xSpeed);
 
         if (self.cubeStat.nextDir === "left") {
           self.jumper.position.x -= self.jumperStat.xSpeed;
@@ -752,7 +795,7 @@ Game.prototype = {
   notifyInfo(data) {
     // 发起通知
     console.log("发起通知 :>> " + data.type, data);
-    let url = this.myRole === 'p1' ? 'http://192.168.27.44:2999' : 'http://192.168.27.242:2999'
+    let url = this.myRole === 'p1' ? 'http://192.168.27.242:2999' : 'http://192.168.27.44:2999'
     url += `/program?action=message&uid=1234&pid=game1&message=${JSON.stringify(data)}`
     // 发送请求
     // const url = ""
@@ -854,7 +897,7 @@ Game.prototype = {
         type: "DefaultCubeColor",
       },
       RandomColor(),
-      clockMaterial(),
+      // clockMaterial(),
       RadialGradient(),
       RadialGradient2(),
       Chess(),
@@ -976,6 +1019,7 @@ Game.prototype = {
 
     function RandomColor() {
       var color = "#" + Math.floor(Math.random() * 16777215).toString(16);
+      console.log('color :>> ', color);
       return {
         material: new THREE.MeshLambertMaterial({ color: color }),
         type: "RandomColor",
