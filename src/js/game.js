@@ -1,7 +1,11 @@
 window.$p1 = document.getElementById('p1');
 window.$p2 = document.getElementById('p2');
 
-var Game = function () {
+
+
+var Game = function (Role) {
+  this.myRole = Role
+  this.activeUser = 'p1'
   // 基本参数
   this.config = {
     isMobile: false,
@@ -21,6 +25,22 @@ var Game = function () {
     jumperHeight: 2, // jumper高度
     jumperDeep: 1, // jumper深度
   }
+  // 方块配置
+  this.blockMap = [
+    {
+      geometry: 'CylinderGeometry',
+      materia: 1,
+      nextDir: 'left',
+      range: 3.7
+    },
+    {
+      geometry: 'CubeGeometry',
+      materia: 2,
+      nextDir: 'right',
+      range: 1.2
+    }
+  ]
+  this.blockMapMax = this.blockMap.length - 1;
   // 游戏状态
   this.score = 0
   this.size = {
@@ -66,16 +86,16 @@ var Game = function () {
   }
   this.combo = 0; // 连续调到中心的次数，起始为0
 
-  this.activeUser = 'p1'
 }
 Game.prototype = {
-  init: function () {
+  init: function (initBlockList) {
     this._checkUserAgent() // 检测是否移动端
     this._setCamera() // 设置摄像机位置
     this._setRenderer() // 设置渲染器参数
     this._setLight() // 设置光照
-    this._createCube() // 加一个方块
-    this._createCube() // 再加一个方块
+    // this._createCube() // 加一个方块
+    // this._createCube() // 再加一个方块
+    this._initCreateCube(initBlockList) // 初始化两个块
     this._createJumper() // 加入游戏者jumper
     this._updateCamera() // 更新相机坐标
 
@@ -98,12 +118,20 @@ Game.prototype = {
     var canvas = document.querySelector('canvas')
     canvas.addEventListener(mouseEvents.down, function () {
       // console.log('mousedown');
-      self._handleMousedown()
+      if (self.myRole === self.activeUser) {
+        self._handleMousedown()
+      } else {
+        console.log('还没轮到你呢！');
+      }
     })
     // 监听鼠标松开的事件
     canvas.addEventListener(mouseEvents.up, function (evt) {
       // console.log('mouseup');
-      self._handleMouseup()
+      if (self.myRole === self.activeUser) {
+        self._handleMouseup()
+      } else {
+        console.log('还没轮到你呢！');
+      }
     })
     // 监听窗口变化的事件
     window.addEventListener('resize', function () {
@@ -181,10 +209,14 @@ Game.prototype = {
   _handleMousedown: function () {
     var self = this
 
+    self.pressDownCount = 0;
+    console.log(self.jumper.position.y);
+
     function act() {
     // if (!self.jumperStat.ready && self.jumper.scale.y > 0.02) {
       // 以jumperBody蓄力一半为最大值
       if (!self.jumperStat.ready && self.jumperBody.scale.y > 0.02 &&  self.jumperBody.scale.y >= 0.5) {
+        self.pressDownCount += 1;
         self.jumperBody.scale.y -= 0.01  // jumper随按压时间降低高度，即减小jumper.scale.y值
         // self.jumper.scale.y -= 0.01  // jumper随按压时间降低高度，即减小jumper.scale.y值
         self.jumperHead.position.y -= 0.02 // jumper头部跟随下降
@@ -201,15 +233,60 @@ Game.prototype = {
     }
     act();
   },
+  _handleReceiveMouseDown: function(count) {
+    var self = this
+
+    var pressCount = count;
+    console.log(self.jumper.position.y);
+
+    function act() {
+    // if (!self.jumperStat.ready && self.jumper.scale.y > 0.02) {
+      // 以jumperBody蓄力一半为最大值
+      if (pressCount > 0) { 
+        pressCount --;
+        self.pressDownCount += 1;
+        self.jumperBody.scale.y -= 0.01  // jumper随按压时间降低高度，即减小jumper.scale.y值
+        // self.jumper.scale.y -= 0.01  // jumper随按压时间降低高度，即减小jumper.scale.y值
+        self.jumperHead.position.y -= 0.02 // jumper头部跟随下降
+
+        self.jumperStat.xSpeed += 0.004
+        self.jumperStat.ySpeed += 0.008
+
+        self.jumperStat.yTimes = (1 - self.jumperBody.scale.y) / 0.01; // 计算倍数, 用于jumper在y轴的旋转
+        // console.log( self.jumperBody.scale.y, self.jumperStat.yTimes );
+
+        self.mouseDownFrameHandler =  requestAnimationFrame(act);
+
+        self._render(self.scene, self.camera);
+      } else {
+        self._handleMouseup();
+      }
+    }
+    act();
+  },
   // 鼠标松开或触摸结束绑定的函数
   _handleMouseup: function () {
     var self = this
+    // console.log('self.jumperStat.xSpeed', self.jumperStat.xSpeed);
+    // console.log('self.jumperStat.ySpeed', self.jumperStat.ySpeed);
+    // console.log('self.self.jumper.position.y :>> ', self.jumper.position.y);
+    if (self.activeUser === self.myRole) {
+      console.log('self. :>> ', self.pressDownCount);
+      self.notifyInfo({
+        type: "jump",
+        data: self.pressDownCount
+      })
+    }
     // 标记鼠标已经松开
     self.jumperStat.ready = true;
     cancelAnimationFrame(self.mouseDownFrameHandler);
     var frameHandler;
 
     function act() {
+      // console.log('---------');
+      // console.log('yspeed:',self.jumperStat.ySpeed );
+      // console.log('py:',self.jumper.position.y );
+      // console.log('---------');
       // 判断jumper是在方块水平面之上，是的话说明需要继续运动
       // if (self.jumper.position.y >= 1) { // 此处不应该只判断jumper的位置，而是应该判断jumper的y速度
       if (self.jumperStat.ySpeed > 0 || self.jumper.position.y >= 1) {
@@ -284,22 +361,26 @@ Game.prototype = {
       self._checkInCube();
 
       if (self.falledStat.location === 1) {
-        // 播放掉落成功音效
-        if(ActMusic){
-          ActMusic.play();
+        // 跳成功
+        if (self.myRole === self.activeUser) {
+          // 播放掉落成功音效
+          if(ActMusic){
+            ActMusic.play();
+          }
+  
+          // 掉落成功，进入下一步
+          self.score += Math.pow(2, self.combo); // 随着combo
+          // self._createCube()
+          self._landSuccess();
+          self._updateCamera()
+  
+          if (self.successCallback) {
+            self.successCallback(self.score)
+          }
+  
+          // 切换当前用户
+          self.switchActiveUser();
         }
-
-        // 掉落成功，进入下一步
-        self.score += Math.pow(2, self.combo); // 随着combo
-        self._createCube()
-        self._updateCamera()
-
-        if (self.successCallback) {
-          self.successCallback(self.score)
-        }
-
-        // 切换当前用户
-        self.switchActiveUser();
 
       } else {
         // 掉落失败，进入失败动画
@@ -318,6 +399,27 @@ Game.prototype = {
     }
 
     act();
+  },
+  // 接收到对手着陆成功
+  handleOtherLand(cubeIndex) {
+    var self = this
+    // 播放掉落成功音效
+    if(ActMusic){
+      ActMusic.play();
+    }
+
+    // 掉落成功，进入下一步
+    self.score += Math.pow(2, self.combo); // 随着combo
+    // self._createCube()
+    self._createCube(cubeIndex);
+    self._updateCamera()
+
+    if (self.successCallback) {
+      self.successCallback(self.score)
+    }
+
+    // 切换当前用户
+    self.switchActiveUser();
   },
   switchActiveUser(init) {
     var self = this;
@@ -571,24 +673,67 @@ Game.prototype = {
     jumperInitFall();
 
   },
+  _initCreateCube: function(initBlockList) {
+    const list = initBlockList || [Math.floor(Math.random()*(this.blockMapMax+1)), Math.floor(Math.random()*(this.blockMapMax+1))];
+    this._createCube(list[0]);
+    this._createCube(list[1]);
+
+    // 通知p2初始化
+    if (!initBlockList) {
+      console.log('通知对方生成块', list);
+      const data = {
+        type: 'init',
+        data: list
+      }
+      this.notifyInfo(data)
+    }
+  },
+  _landSuccess: function() {
+    const index = Math.floor(Math.random()*(this.blockMapMax+1));
+    this._createCube(index);
+
+    const data = {
+      type: 'land',
+      data: index
+    }
+    this.notifyInfo(data)
+
+  },
+  notifyInfo(data) {
+    // 发起通知
+    console.log('发起通知 :>> ' + data.type, data);
+  },
   // 新增一个方块, 新的方块有2个随机方向
-  _createCube: function () {
-    var geometryObj = this._createGeometry(); // 生成一个集合体
-    var materialObj = this._createMaterial()(); // 生成材质
+  _createCube: function (index) {
+    
+    // Math.floor(Math.random()*(max-min+1)+min);
+    // const randomIndex = index || Math.floor(Math.random()*(1+1));
+    const blockConfig = this.blockMap[index];
+    console.log('blockConfig :>> ', blockConfig);
+
+    var geometryObj = this._createGeometry(blockConfig.geometry); // 生成一个集合体
+    console.log('geometryObj :>> ', geometryObj);
+    var materialObj = this._createMaterial()(blockConfig.materia); // 生成材质
+    console.log('materialObj :>> ', materialObj);
 
     var mesh = new THREE.Mesh(geometryObj.geometry, materialObj.material)
     mesh.castShadow = true; // 产生阴影
     mesh.receiveShadow = true;    // 接收阴影
 
     if( this.cubes.length ) {
-      this.cubeStat.nextDir =  Math.random() > 0.5 ? 'left' : 'right'
+      // this.cubeStat.nextDir =  Math.random() > 0.5 ? 'left' : 'right'
+      this.cubeStat.nextDir =  blockConfig.nextDir;
       mesh.position.x = this.cubes[this.cubes.length - 1].position.x
       mesh.position.y = this.cubes[this.cubes.length - 1].position.y
       mesh.position.z = this.cubes[this.cubes.length - 1].position.z
+
+
       if (this.cubeStat.nextDir === 'left') {
-        mesh.position.x = this.cubes[this.cubes.length - 1].position.x-4*Math.random() - 6
+        // mesh.position.x = this.cubes[this.cubes.length - 1].position.x-4*Math.random() - 6
+        mesh.position.x = this.cubes[this.cubes.length - 1].position.x - blockConfig.range - 6
       } else {
-        mesh.position.z = this.cubes[this.cubes.length - 1].position.z-4*Math.random() - 6
+        // mesh.position.z = this.cubes[this.cubes.length - 1].position.z-4*Math.random() - 6
+        mesh.position.z = this.cubes[this.cubes.length - 1].position.z - blockConfig.range - 6
       }
     }
 
@@ -604,6 +749,7 @@ Game.prototype = {
     }
 
   },
+
   _render: function () {
     this.renderer.render(this.scene, this.camera)
   },
@@ -771,9 +917,19 @@ Game.prototype = {
     }
 
   },
-  _createGeometry: function(){ // 生成几合体
+  _createGeometry: function(geometry){ // 生成几合体
+    // var obj = {};
+    // if(Math.random() > 0.5){  // 添加圆柱型方块
+    //   obj.geometry = new THREE.CylinderGeometry(this.config.cubeWidth / 2, this.config.cubeWidth / 2, this.config.cubeHeight, 40)
+    //   obj.type = 'CylinderGeometry';
+    // }else{ // 方块
+    //   obj.geometry = new THREE.CubeGeometry(this.config.cubeWidth,this.config.cubeHeight,this.config.cubeDeep)
+    //   obj.type = 'CubeGeometry';
+    // }
+    // return obj;
+
     var obj = {};
-    if(Math.random() > 0.5){  // 添加圆柱型方块
+    if(geometry == "CylinderGeometry"){  // 添加圆柱型方块
       obj.geometry = new THREE.CylinderGeometry(this.config.cubeWidth / 2, this.config.cubeWidth / 2, this.config.cubeHeight, 40)
       obj.type = 'CylinderGeometry';
     }else{ // 方块

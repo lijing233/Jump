@@ -1,5 +1,9 @@
-var game = new Game()
-game.init()
+const myRole = location.search ? 'p2' : 'p1';
+console.log('myRole :>> ', myRole);
+var game = new Game(myRole);
+if (myRole === 'p1') {
+	game.init()
+}
 game.addSuccessFn(success)
 game.addFailedFn(failed)
 
@@ -58,3 +62,14 @@ FallMusic.loop = false;
 document.addEventListener('contextmenu', function (e) {
 	e.preventDefault();
 })
+
+
+window.receiveNotifiy = (data) => {
+	if (data.type === 'init') {
+		game.init(data.data)
+	} else if (data.type === 'jump') {
+		game._handleReceiveMouseDown(data.data)
+	} else if (data.type === 'land') {
+		game.handleOtherLand(data.data)
+	}
+}
