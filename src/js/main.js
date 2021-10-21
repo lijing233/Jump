@@ -2,27 +2,48 @@ const myRole = location.search ? 'p2' : 'p1';
 console.log('myRole :>> ', myRole);
 var game = new Game(myRole);
 if (myRole === 'p1') {
-	game.init()
+	// game.init()
+	document.querySelector('.start').style.display = 'block'
+} else {
+	document.querySelector('.p2starttext').style.display = 'block'
 }
 game.addSuccessFn(success)
 game.addFailedFn(failed)
 
 var mask = document.querySelector('.mask')
+var mask2 = document.querySelector('.mask2')
 var restartButton = document.querySelector('.restart')
+var startButton = document.querySelector('.start')
 var score = document.querySelector('.score')
-var winnerText = document.querySelector('.winner-text')
+// var winnerText = document.querySelector('.winner-text')
+var winnerText2 = document.querySelector('.winner-text2')
 
 restartButton.addEventListener('click', restart)
+startButton.addEventListener('click', start)
+
+// 房主开始游戏
+function start () {
+	mask2.style.display = 'none';
+	game.notifyInfo({
+		type: "begin",
+		data: "",
+	})
+	game.init()
+}
 
 // 游戏重新开始，执行函数
 function restart () {
-	mask.style.display = 'none'
 	game.restart()
 }
 // 游戏失败执行函数
 function failed(){
 	score.innerText = game.score
-	winnerText.innerText = `获胜者是：${game.winUser}`
+	// winnerText.innerText = `获胜者是：${game.winUser}`
+	winnerText2.innerText = game.myRole === game.activeUser ? 'You Lose!' : 'You Win!'
+
+	document.querySelector('.restart').style.display = game.myRole === 'p1' ? 'block' : 'none';
+	document.querySelector('.restartText').style.display = game.myRole === 'p2' ? 'block' : 'none';
+
 	mask.style.display = 'flex'
 }
 // 游戏成功，更新分数
@@ -64,12 +85,20 @@ document.addEventListener('contextmenu', function (e) {
 })
 
 
-window.receiveNotifiy = (data) => {
-	if (data.type === 'init') {
-		game.init(data.data)
-	} else if (data.type === 'jump') {
-		game._handleReceiveMouseDown(data.data)
-	} else if (data.type === 'land') {
-		game.handleOtherLand(data.data)
+window.onReceivedMessage = (data) => {
+	console.log('接收到通知 :>> ', data);
+	// alert('接收到通知 :>> '+JSON.stringify(data))
+	console.log('data :>> ', JSON.parse(data));
+	const resData = JSON.parse(data);
+	if(resData.type === 'begin') {
+		mask2.style.display = 'none';
+	} else if (resData.type === 'init') {
+		game.init(resData.data)
+	} else if (resData.type === 'jump') {
+		game._handleReceiveMouseDown(resData.data)
+	} else if (resData.type === 'land') {
+		game.handleOtherLand(resData.data)
+	} else if (resData.type === 'restart') {
+		game.restart(resData.data)
 	}
 }
