@@ -1,8 +1,9 @@
 window.$p1 = document.getElementById("p1");
 window.$p2 = document.getElementById("p2");
 
-var Game = function (Role) {
+var Game = function (Role, RequestUrl) {
   this.myRole = Role;
+  this.RequestUrl = RequestUrl;
   this.activeUser = "p1";
   this.otherLandList = []
   // 基本参数
@@ -52,7 +53,7 @@ var Game = function (Role) {
     },
     {
       geometry: "CylinderGeometry",
-      materia: 5,
+      materia: 0,
       nextDir: "right",
       range: 0.3,
     },
@@ -795,8 +796,7 @@ Game.prototype = {
   notifyInfo(data) {
     // 发起通知
     console.log("发起通知 :>> " + data.type, data);
-    let url = this.myRole === 'p1' ? 'http://192.168.27.242:2999' : 'http://192.168.27.44:2999'
-    url += `/program?action=message&uid=1234&pid=game1&message=${JSON.stringify(data)}`
+    let url = `${this.RequestUrl}/program?action=message&uid=1234&pid=game2&message=${JSON.stringify(data)}`
     // 发送请求
     // const url = ""
     var httpRequest = new XMLHttpRequest(); //第一步：建立所需的对象
@@ -825,8 +825,8 @@ Game.prototype = {
     console.log("materialObj :>> ", materialObj);
 
     var mesh = new THREE.Mesh(geometryObj.geometry, materialObj.material);
-    mesh.castShadow = true; // 产生阴影
-    mesh.receiveShadow = true; // 接收阴影
+    // mesh.castShadow = true; // 产生阴影
+    // mesh.receiveShadow = true; // 接收阴影
 
     if (this.cubes.length) {
       // this.cubeStat.nextDir =  Math.random() > 0.5 ? 'left' : 'right'
@@ -892,16 +892,20 @@ Game.prototype = {
     var config = this.config;
     // 所有的材质数组
     var materials = [
-      {
-        material: new THREE.MeshLambertMaterial({ color: config.cubeColor }),
-        type: "DefaultCubeColor",
-      },
-      RandomColor(),
+      // {
+      //   material: new THREE.MeshLambertMaterial({ color: config.cubeColor }),
+      //   type: "DefaultCubeColor",
+      // },
+      RandomColor('#FAFAFA'),
+      RandomColor('#649568'),
+      RandomColor('#F3813A'),
+      RandomColor('#8C76EA'),
+      RandomColor('#FFE0A3'),
       // clockMaterial(),
-      RadialGradient(),
-      RadialGradient2(),
-      Chess(),
-      wireFrame(),
+      // RadialGradient(),
+      // RadialGradient2(),
+      // Chess(),
+      // wireFrame(),
     ];
 
     return function (idx) {
@@ -1017,8 +1021,8 @@ Game.prototype = {
       };
     }
 
-    function RandomColor() {
-      var color = "#" + Math.floor(Math.random() * 16777215).toString(16);
+    function RandomColor(showColor) {
+      var color = showColor || "#" + Math.floor(Math.random() * 16777215).toString(16);
       console.log('color :>> ', color);
       return {
         material: new THREE.MeshLambertMaterial({ color: color }),

@@ -137,6 +137,12 @@ a.title{
 	left: 20px;
 	top: 10px;
 	transition: all .3s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 28px;
+	font-weight: bold;
+	filter: opacity(0.5);
 }
 .p2 {
 	width: 60px;
@@ -147,12 +153,19 @@ a.title{
 	right: 20px;
 	top: 10px;
 	transition: all .3s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 28px;
+	font-weight: bold;
+	filter: opacity(0.5);
 }
 
 .active {
 	width: 70px;
 	height: 70px;
-	border: 1px solid #fff;
+	border: 3px solid #fff;
+	filter: opacity(1);
 }
 
 .winner-text {

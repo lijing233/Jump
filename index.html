@@ -5,12 +5,17 @@
 	<title>Jump</title>
 	<meta name="viewport" content="width=device-width, maximum-scale=1, user-scalable=no">
 	<link rel="shortcut icon" href="./favicon.ico">
+	<script src="src/js/vconsole.js"></script>
+	<script>
+		// VConsole will be exported to `window.VConsole` by default.
+		var vConsole = new window.VConsole();
+	</script>
 	<link rel="stylesheet" href="src/css/jump.css">
 </head>
 <body>
 	<div class="user-block">
-		<div class="p1 active" id="p1"></div>
-		<div class="p2" id="p2"></div>
+		<div class="p1 active" id="p1"><div>P1</div></div>
+		<div class="p2" id="p2"><div>P2</div></div>
 	</div>
   <div class="mask">
     <div class="content">
@@ -36,7 +41,6 @@
 	</div>
   <div class="info">
     <h3>Jump</h3>
-    Created By <a class="author" href="https://luosijie.github.io/" target="_blank">Jesse Luo</a> and <a class="author" href="https://xmoyking.github.io/" target="_blank">xmoyKing</a>
     <div class="score-gaming">
       得分：<span class="score-current">0</span>
     </div>

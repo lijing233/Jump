@@ -1,6 +1,14 @@
-const myRole = location.search ? 'p2' : 'p1';
+try {
+	var baseUrl = window.client.getBaseUrl();
+var isHost = window.client.isHost();
+} catch (err) {
+	var baseUrl = ''
+	var isHost = 'p1'
+}
+
+const myRole = isHost ? 'p1' : 'p2';
 console.log('myRole :>> ', myRole);
-var game = new Game(myRole);
+var game = new Game(myRole, baseUrl);
 if (myRole === 'p1') {
 	// game.init()
 	document.querySelector('.start').style.display = 'block'
@@ -102,3 +110,12 @@ window.onReceivedMessage = (data) => {
 		game.restart(resData.data)
 	}
 }
+
+
+
+// 
+window.logoImg = new Image();
+logoImg.src = "/src/img/1.png";
+window.logoImg.onload = function() {
+	console.log(logoImg);
+} 
